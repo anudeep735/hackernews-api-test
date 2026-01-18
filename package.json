@@ -1,0 +1,16 @@
+{
+  "name": "hackernews-api-test",
+  "version": "1.0.0",
+  "description": "API acceptance tests for HackerNews using Playwright and TypeScript",
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "yarn playwright test",
+    "report": "yarn playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.3",
+    "dotenv": "^17.2.3",
+    "typescript": "^5.0.0"
+  }
+}
