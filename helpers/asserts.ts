@@ -26,7 +26,7 @@ export class Asserts {
      * Assert that the provided comment meets the expected criteria.
      * @param comment - Comment object
      * @param commentId - Expected comment ID
-     * @param parentId - Expected parent item ID
+     * @param parentId - Expected parent ID
      */
     async assertComment(comment: Record<string,any>, commentId: number, parentId: number) {
         expect(comment.id).toBe(commentId);

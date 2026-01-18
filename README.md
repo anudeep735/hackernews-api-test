@@ -8,7 +8,7 @@ Automated API acceptance tests for HackerNews using **Playwright** and **TypeScr
 
 ## Setup
 1. Clone the repository:
-   `git clone https://github.com/yourusername/hackernews-api-test.git`
+   `git clone https://github.com/anudeep735/hackernews-api-test.git`
 2. Install dependencies:
    `yarn`
 
