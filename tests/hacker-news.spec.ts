@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { HackerNewsType } from '../utils/constants';
 import { Asserts } from '../helpers/asserts';
+import { getTopStories } from '../helpers/apis';
 
 /**
  * HackerNews API Acceptance Tests
@@ -8,7 +9,7 @@ import { Asserts } from '../helpers/asserts';
 test.describe('HackerNews API Acceptance Tests', () => {
 
   test('[hacker-news-01], Retrieving top stories should return a list of IDs', async ({ request }) => {
-    const response = await request.get(`${process.env.BASE_URL}/topstories.json`);
+    const response = await getTopStories(request, true);
     expect(response.ok()).toBeTruthy();
 
     const stories = await response.json();
@@ -27,7 +28,7 @@ test.describe('HackerNews API Acceptance Tests', () => {
   });
 
   test('[hacker-news-03], Using Top Stories API to retrieve the current top story', async ({ request }) => {
-    const storiesResponse = await request.get(`${process.env.BASE_URL}/topstories.json`);
+    const storiesResponse = await getTopStories(request, true);
     const stories = await storiesResponse.json();
 
     expect(stories.length, 'Story IDs should be more than 0').toBeGreaterThan(0);
@@ -63,7 +64,7 @@ test.describe('HackerNews API Acceptance Tests', () => {
   });
 
   test('[hacker-news-06], Handle gracefully for valid IDs with invalid format', async ({ request }) => {
-    const storiesResponse = await request.get(`${process.env.BASE_URL}/topstories.json`);
+   const storiesResponse = await getTopStories(request, true);
     const stories = await storiesResponse.json();
 
     expect(stories.length, 'Story IDs should be more than 0').toBeGreaterThan(0);
@@ -78,7 +79,7 @@ test.describe('HackerNews API Acceptance Tests', () => {
 
   test('[hacker-news-07], Retrieve a top story and its first comment', async ({ request }) => {
     const assertsObj = new Asserts(request);
-    const storiesResponse = await request.get(`${process.env.BASE_URL}/topstories.json`);
+    const storiesResponse = await getTopStories(request, true);
     const stories = await storiesResponse.json();
     const firstStoryId = stories[0];
 
@@ -101,7 +102,7 @@ test.describe('HackerNews API Acceptance Tests', () => {
 
   test('[hacker-news-08], Retrieve a top story that has a comment', async ({ request }) => {
     const assertsObj = new Asserts(request);
-    const storiesResponse = await request.get(`${process.env.BASE_URL}/topstories.json`);
+    const storiesResponse = await getTopStories(request, true);
     const stories = await storiesResponse.json();
 
     let foundComment = false;
@@ -127,4 +128,65 @@ test.describe('HackerNews API Acceptance Tests', () => {
       console.warn('No stories in the top 20 had comments at this time.');
     }
   });
+
+  test('[hacker-news-online], Test with/without pretty', async ({ request }) => {
+    const noPrettyresponse = await getTopStories(request);
+    expect(noPrettyresponse.ok()).toBeTruthy();
+
+    const npResponseBody = await noPrettyresponse.json();
+
+    const prettyresponse = await getTopStories(request, true);
+    expect(prettyresponse.ok()).toBeTruthy();
+
+    const pResponseBody = await prettyresponse.json();
+
+    // Check that the response body contains newlines and indentation typical of pretty-printed JSON
+    expect(npResponseBody).toEqual(pResponseBody);
+  });
+
+  test('[hacker-news-online-01], Deletec', async ({ request }) => {
+    const response = await getTopStories(request);
+    expect(response.ok()).toBeTruthy();
+
+    let fountItem = null;
+    const stories = await response.json();
+    for (const storyId of stories) {
+      const itemResponse = await request.get(`${process.env.BASE_URL}/item/${storyId}.json`);
+      expect(itemResponse.ok()).toBeTruthy();
+      
+      const item = await itemResponse.json();
+      if (item.deleted && item.deleted === true) {
+        fountItem = item;
+        console.log(`Found deleted item with ID: ${item.id}`);
+        break;
+      }
+      else {
+        console.log(`Item ID: ${item.id} is not deleted.`);
+      }
+    }
+  });
+
+  test.only('[hacker-news-online-01], Deleted', async ({ request }) => {
+    let storyId = 43920636;
+    let startTime = Date.now();
+    const itemResponse = await request.get(`${process.env.BASE_URL}/item/${storyId}.json`);
+    let endTime = Date.now();
+    let timeTaken = endTime - startTime;
+    console.log(`Time taken to fetch item ID ${storyId}: ${timeTaken} ms`);
+
+    if (timeTaken < 2000) {
+      console.log(`Fetching item ID ${storyId} took Less than 2 seconds.`);
+    }
+    expect(itemResponse.ok()).toBeTruthy();
+    
+    const item = await itemResponse.json();
+    if (item.deleted && item.deleted === true) {
+      console.log(`Found deleted item with ID: ${item.id}`);
+    }
+    else {
+      console.log(`Item ID: ${item.id} is not deleted.`);
+    }
+  });
+
+  // 43920636
 });
